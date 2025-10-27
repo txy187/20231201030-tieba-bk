@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}编辑资料 - {{ profile.user.username }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-user-edit"></i> 编辑个人资料
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- 头像上传 -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">头像</label>
+                            <div class="d-flex align-items-center">
+                                {% if profile.avatar %}
+                                    <img src="{{ profile.avatar.url }}" alt="当前头像" class="rounded-circle me-3" width="80" height="80">
+                                {% else %}
+                                    <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center me-3" style="width: 80px; height: 80px;">
+                                        <span class="text-muted" style="font-size: 32px;">{{ profile.user.username|first|upper }}</span>
+                                    </div>
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <input type="file" name="avatar" class="form-control" id="id_avatar" accept="image/*">
+                                    <div class="form-text">支持 JPG、PNG 格式，建议尺寸 200x200 像素</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 个人简介 -->
+                        <div class="mb-3">
+                            <label for="id_bio" class="form-label fw-bold">个人简介</label>
+                            {{ form.bio }}
+                            <div class="form-text">用一段话介绍你自己，最多500字</div>
+                        </div>
+                        
+                        <!-- 所在地 -->
+                        <div class="mb-3">
+                            <label for="id_location" class="form-label fw-bold">所在地</label>
+                            {{ form.location }}
+                            <div class="form-text">例如：北京、上海、广州等</div>
+                        </div>
+                        
+                        <!-- 个人网站 -->
+                        <div class="mb-4">
+                            <label for="id_website" class="form-label fw-bold">个人网站</label>
+                            {{ form.website }}
+                            <div class="form-text">请输入完整的网址，例如：https://example.com</div>
+                        </div>
+                        
+                        <!-- 按钮组 -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> 保存更改
+                            </button>
+                            <a href="{% url 'users:profile' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> 取消
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 表单验证脚本 -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 实时显示头像预览
+        const avatarInput = document.getElementById('id_avatar');
+        const avatarPreview = document.querySelector('img[alt="当前头像"]');
+        
+        if (avatarInput && avatarPreview) {
+            avatarInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        avatarPreview.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+        
+        // 表单验证
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            const bio = document.getElementById('id_bio').value;
+            if (bio.length > 500) {
+                e.preventDefault();
+                alert('个人简介不能超过500字！');
+                return false;
+            }
+        });
+    });
+</script>
+{% endblock %}

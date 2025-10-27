@@ -1,0 +1,606 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}搜索帖子 - 贴吧{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    
+    .search-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .search-form {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+    }
+    
+    .search-input-group {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+    
+    .search-input {
+        border: 2px solid #e9ecef;
+        border-radius: 25px;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+    
+    .search-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .search-btn {
+        position: absolute;
+        right: 5px;
+        top: 5px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 20px;
+        padding: 0.75rem 1.5rem;
+        color: white;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .search-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .filter-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .filter-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .filter-group {
+        margin-bottom: 1rem;
+    }
+    
+    .filter-label {
+        font-weight: 500;
+        color: #34495e;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .filter-select {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 0.75rem;
+        width: 100%;
+        background: white;
+        transition: all 0.3s ease;
+    }
+    
+    .filter-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .search-results {
+        margin-top: 2rem;
+    }
+    
+    .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .results-count {
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: #2c3e50;
+    }
+    
+    .results-sort {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .post-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .post-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        border: none;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .post-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    }
+    
+    .post-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+        position: relative;
+    }
+    
+    .post-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        line-height: 1.4;
+        color: #2c3e50;
+    }
+    
+    .post-content {
+        padding: 1.5rem;
+        flex-grow: 1;
+        color: #5a6c7d;
+        line-height: 1.6;
+    }
+    
+    .post-footer {
+        padding: 1rem 1.5rem;
+        background: #f8f9fa;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    .post-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    
+    .post-stats {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .author-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .search-history {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .history-title {
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin-bottom: 1rem;
+        color: #2c3e50;
+    }
+    
+    .history-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .history-item {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        color: #6c757d;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .history-item:hover {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6c757d;
+    }
+    
+    .empty-state-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    .clear-history {
+        margin-top: 1rem;
+        text-align: right;
+    }
+    
+    @media (max-width: 768px) {
+        .search-container {
+            padding: 1rem 0.5rem;
+        }
+        
+        .search-header {
+            padding: 1.5rem;
+        }
+        
+        .search-form {
+            padding: 1.5rem;
+        }
+        
+        .filter-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .post-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .results-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="search-container">
+    <!-- 搜索头部 -->
+    <div class="search-header">
+        <h1 class="display-5 fw-bold mb-3">
+            <i class="fas fa-search me-2"></i>搜索帖子
+        </h1>
+        <p class="lead mb-0">在贴吧社区中查找您感兴趣的内容</p>
+    </div>
+    
+    <!-- 搜索表单 -->
+    <div class="search-form">
+        <form method="get" action="{% url 'posts:search' %}" id="search-form">
+            <div class="search-input-group">
+                <input type="text" 
+                       name="q" 
+                       value="{{ query }}"
+                       placeholder="输入关键词搜索帖子..." 
+                       class="search-input"
+                       id="search-input">
+                <button type="submit" class="search-btn">
+                    <i class="fas fa-search me-1"></i>搜索
+                </button>
+            </div>
+            
+            <!-- 筛选条件 -->
+            <div class="filter-section">
+                <h5 class="mb-3">
+                    <i class="fas fa-filter me-2"></i>筛选条件
+                </h5>
+                
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label class="filter-label">时间范围</label>
+                        <select name="time_range" class="filter-select">
+                            <option value="">全部时间</option>
+                            <option value="today" {% if time_range == 'today' %}selected{% endif %}>今天</option>
+                            <option value="week" {% if time_range == 'week' %}selected{% endif %}>本周</option>
+                            <option value="month" {% if time_range == 'month' %}selected{% endif %}>本月</option>
+                            <option value="year" {% if time_range == 'year' %}selected{% endif %}>今年</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">分类</label>
+                        <select name="category" class="filter-select">
+                            <option value="">全部分类</option>
+                            <option value="tech" {% if category == 'tech' %}selected{% endif %}>技术</option>
+                            <option value="life" {% if category == 'life' %}selected{% endif %}>生活</option>
+                            <option value="entertainment" {% if category == 'entertainment' %}selected{% endif %}>娱乐</option>
+                            <option value="sports" {% if category == 'sports' %}selected{% endif %}>体育</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">排序方式</label>
+                        <select name="sort" class="filter-select">
+                            <option value="relevance" {% if sort == 'relevance' %}selected{% endif %}>相关度</option>
+                            <option value="newest" {% if sort == 'newest' %}selected{% endif %}>最新发布</option>
+                            <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>最早发布</option>
+                            <option value="popular" {% if sort == 'popular' %}selected{% endif %}>最受欢迎</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="text-end">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-filters">
+                        <i class="fas fa-redo me-1"></i>重置筛选
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <!-- 搜索结果 -->
+    {% if query %}
+    <div class="search-results">
+        <div class="results-header">
+            <div class="results-count">
+                <i class="fas fa-search me-1"></i>
+                找到 <strong>{{ results_count }}</strong> 个相关结果
+                {% if query %}
+                    关于 "<span class="text-primary">{{ query }}</span>"
+                {% endif %}
+            </div>
+            
+            <div class="results-sort">
+                <span class="text-muted">排序方式：</span>
+                <select name="sort" class="filter-select" style="width: auto;" onchange="this.form.submit()">
+                    <option value="relevance" {% if sort == 'relevance' %}selected{% endif %}>相关度</option>
+                    <option value="newest" {% if sort == 'newest' %}selected{% endif %}>最新发布</option>
+                    <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>最早发布</option>
+                    <option value="popular" {% if sort == 'popular' %}selected{% endif %}>最受欢迎</option>
+                </select>
+            </div>
+        </div>
+        
+        {% if posts %}
+            <div class="post-grid">
+                {% for post in posts %}
+                    <div class="card post-card">
+                        <div class="post-header">
+                            {% if post.views > 100 or post.comments.count > 10 %}
+                                <span class="hot-badge">
+                                    <i class="fas fa-fire me-1"></i>热门
+                                </span>
+                            {% endif %}
+                            <h3 class="post-title">
+                                <a href="{% url 'posts:post_detail' post.pk %}" class="text-decoration-none text-dark">
+                                    {{ post.title }}
+                                </a>
+                            </h3>
+                        </div>
+                        
+                        <div class="post-content">
+                            <p class="mb-0">{{ post.content|truncatewords:50 }}</p>
+                        </div>
+                        
+                        <div class="post-footer">
+                            <div class="post-meta">
+                                <div class="author-info">
+                                    <img src="https://ui-avatars.com/api/?name={{ post.author.username }}&background=0D8ABC&color=fff" 
+                                         alt="{{ post.author.username }}" class="avatar avatar-sm">
+                                    <span>{{ post.author.username }}</span>
+                                </div>
+                                <div class="post-stats">
+                                    <span class="stat-item">
+                                        <i class="fas fa-eye"></i>
+                                        {{ post.views }}
+                                    </span>
+                                    <span class="stat-item">
+                                        <i class="fas fa-comments"></i>
+                                        {{ post.comments.count }}
+                                    </span>
+                                    <span class="stat-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span class="post-time" data-time="{{ post.created_at|date:'c' }}">
+                                            {{ post.created_at|date:'Y-m-d H:i' }}
+                                        </span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- 分页 -->
+            {% if is_paginated %}
+                <div class="pagination-container">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?q={{ query }}&page=1&time_range={{ time_range }}&category={{ category }}&sort={{ sort }}" aria-label="First">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?q={{ query }}&page={{ page_obj.previous_page_number }}&time_range={{ time_range }}&category={{ category }}&sort={{ sort }}" aria-label="Previous">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?q={{ query }}&page={{ num }}&time_range={{ time_range }}&category={{ category }}&sort={{ sort }}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?q={{ query }}&page={{ page_obj.next_page_number }}&time_range={{ time_range }}&category={{ category }}&sort={{ sort }}" aria-label="Next">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?q={{ query }}&page={{ page_obj.paginator.num_pages }}&time_range={{ time_range }}&category={{ category }}&sort={{ sort }}" aria-label="Last">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+            {% endif %}
+        {% else %}
+            <!-- 无结果提示 -->
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h4 class="mb-3">没有找到相关结果</h4>
+                <p class="mb-4">
+                    抱歉，没有找到与 "<strong>{{ query }}</strong>" 相关的帖子。
+                    <br>请尝试使用不同的关键词或调整筛选条件。
+                </p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('search-input').focus()">
+                        <i class="fas fa-edit me-1"></i>修改搜索词
+                    </button>
+                    <a href="{% url 'posts:post_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>发表新帖
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- 搜索历史 -->
+    <div class="search-history">
+        <div class="history-title">
+            <i class="fas fa-history me-2"></i>搜索历史
+        </div>
+        
+        {% if search_history %}
+            <div class="history-list">
+                {% for history_item in search_history %}
+                    <span class="history-item" onclick="setSearchQuery('{{ history_item }}')">
+                        <i class="fas fa-search me-1"></i>{{ history_item }}
+                    </span>
+                {% endfor %}
+            </div>
+            <div class="clear-history">
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="clearSearchHistory()">
+                    <i class="fas fa-trash me-1"></i>清空历史
+                </button>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">暂无搜索历史</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 重置筛选按钮
+        document.getElementById('reset-filters').addEventListener('click', function() {
+            const form = document.getElementById('search-form');
+            const inputs = form.querySelectorAll('select');
+            inputs.forEach(input => {
+                input.value = '';
+            });
+            form.submit();
+        });
+        
+        // 实时更新时间显示
+        const timeElements = document.querySelectorAll('.post-time');
+        timeElements.forEach(element => {
+            const time = new Date(element.dataset.time);
+            element.textContent = window.TiebaUtils.formatDate(time);
+        });
+        
+        // 保存搜索历史到本地存储
+        const query = '{{ query }}';
+        if (query) {
+            saveSearchHistory(query);
+        }
+    });
+    
+    // 设置搜索查询
+    function setSearchQuery(query) {
+        document.getElementById('search-input').value = query;
+        document.getElementById('search-form').submit();
+    }
+    
+    // 保存搜索历史
+    function saveSearchHistory(query) {
+        if (!query.trim()) return;
+        
+        let history = JSON.parse(localStorage.getItem('tieba_search_history') || '[]');
+        
+        // 移除重复项
+        history = history.filter(item => item !== query);
+        
+        // 添加到开头
+        history.unshift(query);
+        
+        // 限制历史记录数量
+        history = history.slice(0, 10);
+        
+        localStorage.setItem('tieba_search_history', JSON.stringify(history));
+    }
+    
+    // 获取搜索历史
+    function getSearchHistory() {
+        return JSON.parse(localStorage.getItem('tieba_search_history') || '[]');
+    }
+    
+    // 清空搜索历史
+    function clearSearchHistory() {
+        localStorage.removeItem('tieba_search_history');
+        location.reload();
+    }
+    
+    // 表单提交时保存搜索词
+    document.getElementById('search-form').addEventListener('submit', function(e) {
+        const query = document.getElementById('search-input').value.trim();
+        if (query) {
+            saveSearchHistory(query);
+        }
+    });
+</script>
+{% endblock %}

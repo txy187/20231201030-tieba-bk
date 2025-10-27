@@ -1,0 +1,467 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ post.title }} - 贴吧{% endblock %}
+
+{% block extra_css %}
+<style>
+    .post-detail-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .post-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px 15px 0 0;
+        margin-bottom: 0;
+    }
+    
+    .post-content {
+        background: white;
+        padding: 2rem;
+        border-radius: 0 0 15px 15px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .author-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .author-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .post-meta {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .interaction-buttons {
+        display: flex;
+        gap: 1rem;
+        margin: 2rem 0;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border-left: 4px solid #667eea;
+    }
+    
+    .btn-interaction {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border: 2px solid #e9ecef;
+        border-radius: 25px;
+        background: white;
+        color: #6c757d;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    
+    .btn-interaction:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-like:hover {
+        border-color: #dc3545;
+        color: #dc3545;
+    }
+    
+    .btn-favorite:hover {
+        border-color: #ffc107;
+        color: #ffc107;
+    }
+    
+    .btn-comment:hover {
+        border-color: #0d6efd;
+        color: #0d6efd;
+    }
+    
+    .btn-interaction.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+    
+    .comment-section {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    
+    .comment-header {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .comment-form {
+        padding: 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .comment-list {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    
+    .comment-item {
+        padding: 1.5rem;
+        border-bottom: 1px solid #f8f9fa;
+        transition: background-color 0.3s ease;
+    }
+    
+    .comment-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .comment-author {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .comment-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+    }
+    
+    .comment-content {
+        line-height: 1.6;
+        color: #2c3e50;
+    }
+    
+    .comment-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 0.75rem;
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    
+    .back-button {
+        margin-bottom: 2rem;
+    }
+    
+    @media (max-width: 768px) {
+        .post-header {
+            padding: 1.5rem;
+        }
+        
+        .post-content {
+            padding: 1.5rem;
+        }
+        
+        .interaction-buttons {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .btn-interaction {
+            justify-content: center;
+        }
+        
+        .post-meta {
+            gap: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="post-detail-container">
+    <!-- 返回按钮 -->
+    <div class="back-button">
+        <a href="{% url 'posts:index' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>返回列表
+        </a>
+    </div>
+    
+    <!-- 帖子头部 -->
+    <div class="post-header">
+        <h1 class="display-5 fw-bold mb-3">{{ post.title }}</h1>
+        
+        <!-- 作者信息 -->
+        <div class="author-info">
+            <img src="https://ui-avatars.com/api/?name={{ post.author.username }}&background=0D8ABC&color=fff&size=60" 
+                 alt="{{ post.author.username }}" class="author-avatar">
+            <div>
+                <h5 class="mb-1">{{ post.author.username }}</h5>
+                <small>发布于 <span class="post-time" data-time="{{ post.created_at|date:'c' }}">
+                    {{ post.created_at|date:'Y-m-d H:i' }}
+                </span></small>
+            </div>
+        </div>
+        
+        <!-- 帖子元数据 -->
+        <div class="post-meta">
+            <div class="meta-item">
+                <i class="fas fa-eye"></i>
+                <span>{{ post.views }} 次浏览</span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-comments"></i>
+                <span>{{ post.comments.count }} 条评论</span>
+            </div>
+            <div class="meta-item">
+                <i class="fas fa-clock"></i>
+                <span>最后更新: {{ post.updated_at|date:'Y-m-d H:i' }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 帖子内容 -->
+    <div class="post-content">
+        <div class="content-text">
+            {{ post.content|linebreaks }}
+        </div>
+        
+        <!-- 互动按钮 -->
+        <div class="interaction-buttons">
+            <button class="btn-interaction btn-like" data-post-id="{{ post.pk }}">
+                <i class="fas fa-heart"></i>
+                <span class="like-count">0</span> 点赞
+            </button>
+            
+            <button class="btn-interaction btn-favorite" data-post-id="{{ post.pk }}">
+                <i class="fas fa-star"></i>
+                <span class="favorite-count">0</span> 收藏
+            </button>
+            
+            <button class="btn-interaction btn-comment" onclick="document.getElementById('comment-form').scrollIntoView({behavior: 'smooth'})">
+                <i class="fas fa-comment"></i>
+                评论
+            </button>
+            
+            {% if user == post.author %}
+                <div class="ms-auto">
+                    <a href="{% url 'posts:post_edit' post.pk %}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-edit"></i> 编辑
+                    </a>
+                    <a href="{% url 'posts:post_delete' post.pk %}" class="btn btn-outline-danger">
+                        <i class="fas fa-trash"></i> 删除
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- 评论区域 -->
+<div class="comment-section mt-4">
+    <div class="comment-header">
+        <h4 class="mb-0">
+            <i class="fas fa-comments me-2"></i>
+            评论 ({{ post.comments.count }})
+        </h4>
+    </div>
+    
+    {% if user.is_authenticated %}
+        <div class="comment-form" id="comment-form">
+            <form method="post" action="{% url 'posts:add_comment' post.pk %}" id="comment-form-element">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <textarea name="content" class="form-control" rows="4" placeholder="写下你的评论..." 
+                              style="border-radius: 10px; border: 2px solid #e9ecef; resize: vertical;" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="border-radius: 25px; padding: 0.75rem 2rem;">
+                    <i class="fas fa-paper-plane me-2"></i>发表评论
+                </button>
+            </form>
+        </div>
+    {% else %}
+        <div class="comment-form text-center">
+            <p class="text-muted">请<a href="{% url 'users:login' %}" class="text-primary">登录</a>后发表评论</p>
+        </div>
+    {% endif %}
+    
+    <div class="comment-list">
+        {% for comment in post.comments.all %}
+            <div class="comment-item">
+                <div class="comment-author">
+                    <img src="https://ui-avatars.com/api/?name={{ comment.author.username }}&background=667eea&color=fff&size=40" 
+                         alt="{{ comment.author.username }}" class="comment-avatar">
+                    <div>
+                        <strong>{{ comment.author.username }}</strong>
+                    </div>
+                </div>
+                <div class="comment-content">
+                    {{ comment.content|linebreaks }}
+                </div>
+                <div class="comment-meta">
+                    <span>{{ comment.created_at|date:"Y-m-d H:i" }}</span>
+                    {% if user == comment.author or user == post.author %}
+                        <div class="comment-actions">
+                            {% if user == comment.author %}
+                                <button class="btn btn-sm btn-outline-secondary">编辑</button>
+                            {% endif %}
+                            {% if user == comment.author or user == post.author %}
+                                <button class="btn btn-sm btn-outline-danger ms-1">删除</button>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <div class="comment-item text-center text-muted">
+                <i class="fas fa-comments fa-3x mb-3" style="opacity: 0.3;"></i>
+                <p>暂无评论，快来发表第一条评论吧！</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 实时时间显示
+    document.addEventListener('DOMContentLoaded', function() {
+        const timeElement = document.querySelector('.post-time');
+        if (timeElement) {
+            const time = new Date(timeElement.dataset.time);
+            timeElement.textContent = formatTime(time);
+        }
+        
+        // 初始化互动按钮
+        initInteractionButtons();
+        
+        // 评论表单提交处理
+        const commentForm = document.getElementById('comment-form-element');
+        if (commentForm) {
+            commentForm.addEventListener('submit', function(e) {
+                const submitBtn = this.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>发表中...';
+            });
+        }
+    });
+    
+    // 格式化时间显示
+    function formatTime(date) {
+        const now = new Date();
+        const diff = now - date;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+        
+        if (minutes < 1) return '刚刚';
+        if (minutes < 60) return `${minutes}分钟前`;
+        if (hours < 24) return `${hours}小时前`;
+        if (days < 7) return `${days}天前`;
+        
+        return date.toLocaleDateString('zh-CN', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+    
+    // 初始化互动按钮功能
+    function initInteractionButtons() {
+        const likeButtons = document.querySelectorAll('.btn-like');
+        const favoriteButtons = document.querySelectorAll('.btn-favorite');
+        
+        likeButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                handleInteraction(this, 'like');
+            });
+        });
+        
+        favoriteButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                handleInteraction(this, 'favorite');
+            });
+        });
+    }
+    
+    // 处理互动操作
+    function handleInteraction(button, type) {
+        const postId = button.dataset.postId;
+        const countSpan = button.querySelector(`.${type}-count`);
+        const icon = button.querySelector('i');
+        
+        // 模拟API调用
+        const currentCount = parseInt(countSpan.textContent) || 0;
+        const isActive = button.classList.contains('active');
+        
+        if (isActive) {
+            // 取消操作
+            button.classList.remove('active');
+            countSpan.textContent = currentCount - 1;
+            
+            if (type === 'like') {
+                icon.className = 'fas fa-heart';
+                showMessage('取消点赞成功', 'success');
+            } else if (type === 'favorite') {
+                icon.className = 'fas fa-star';
+                showMessage('取消收藏成功', 'success');
+            }
+        } else {
+            // 执行操作
+            button.classList.add('active');
+            countSpan.textContent = currentCount + 1;
+            
+            if (type === 'like') {
+                icon.className = 'fas fa-heart text-danger';
+                showMessage('点赞成功', 'success');
+            } else if (type === 'favorite') {
+                icon.className = 'fas fa-star text-warning';
+                showMessage('收藏成功', 'success');
+            }
+        }
+        
+        // 添加动画效果
+        button.style.transform = 'scale(1.1)';
+        setTimeout(() => {
+            button.style.transform = 'scale(1)';
+        }, 200);
+    }
+    
+    // 显示消息提示
+    function showMessage(message, type) {
+        if (typeof TiebaUtils !== 'undefined' && TiebaUtils.showMessage) {
+            TiebaUtils.showMessage(message, type);
+        } else {
+            // 备用消息提示
+            alert(message);
+        }
+    }
+    
+    // 平滑滚动到评论区域
+    function scrollToComment() {
+        const commentSection = document.getElementById('comment-form');
+        if (commentSection) {
+            commentSection.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,383 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}贴吧 - 分享你的想法{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 首页特定样式 */
+    .category-filter {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .category-badge {
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        margin: 0.25rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .category-badge:hover, .category-badge.active {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+    }
+    
+    .post-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .post-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        border: none;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .post-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    }
+    
+    .post-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #f0f0f0;
+        position: relative;
+    }
+    
+    .hot-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+    }
+    
+    .post-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        line-height: 1.4;
+        color: #2c3e50;
+    }
+    
+    .post-content {
+        padding: 1.5rem;
+        flex-grow: 1;
+        color: #5a6c7d;
+        line-height: 1.6;
+    }
+    
+    .post-footer {
+        padding: 1rem 1.5rem;
+        background: #f8f9fa;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    .post-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    
+    .post-stats {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .author-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    
+    .page-link {
+        border: none;
+        border-radius: 8px;
+        margin: 0 0.25rem;
+        transition: all 0.3s ease;
+    }
+    
+    .page-item.active .page-link {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: transparent;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6c757d;
+    }
+    
+    .empty-state-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    @media (max-width: 768px) {
+        .post-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+        
+        .category-filter {
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .post-meta {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        
+        .post-stats {
+            width: 100%;
+            justify-content: space-between;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 分类筛选栏 -->
+<div class="category-filter">
+    <div class="row align-items-center">
+        <div class="col-md-4">
+            <h3 class="mb-0">
+                <i class="fas fa-filter me-2"></i>
+                帖子分类
+            </h3>
+        </div>
+        <div class="col-md-8">
+            <div class="d-flex flex-wrap">
+                <span class="category-badge active" data-category="all">
+                    <i class="fas fa-globe me-1"></i>全部
+                </span>
+                <span class="category-badge" data-category="hot">
+                    <i class="fas fa-fire me-1"></i>热门
+                </span>
+                <span class="category-badge" data-category="new">
+                    <i class="fas fa-bolt me-1"></i>最新
+                </span>
+                <span class="category-badge" data-category="tech">
+                    <i class="fas fa-laptop-code me-1"></i>技术
+                </span>
+                <span class="category-badge" data-category="life">
+                    <i class="fas fa-heart me-1"></i>生活
+                </span>
+                <span class="category-badge" data-category="entertainment">
+                    <i class="fas fa-film me-1"></i>娱乐
+                </span>
+                <span class="category-badge" data-category="sports">
+                    <i class="fas fa-running me-1"></i>体育
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 帖子列表 -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">
+        <i class="fas fa-list me-2"></i>
+        帖子列表
+    </h2>
+    {% if user.is_authenticated %}
+        <a href="{% url 'posts:post_create' %}" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus me-2"></i>发表新帖
+        </a>
+    {% endif %}
+</div>
+
+{% if posts %}
+    <div class="post-grid">
+        {% for post in posts %}
+            <div class="card post-card">
+                <div class="post-header">
+                    {% if post.views > 100 or post.comments.count > 10 %}
+                        <span class="hot-badge">
+                            <i class="fas fa-fire me-1"></i>热门
+                        </span>
+                    {% endif %}
+                    <h3 class="post-title">
+                        <a href="{% url 'posts:post_detail' post.pk %}" class="text-decoration-none text-dark">
+                            {{ post.title }}
+                        </a>
+                    </h3>
+                </div>
+                
+                <div class="post-content">
+                    <p class="mb-0">{{ post.content|truncatewords:50 }}</p>
+                </div>
+                
+                <div class="post-footer">
+                    <div class="post-meta">
+                        <div class="author-info">
+                            <img src="https://ui-avatars.com/api/?name={{ post.author.username }}&background=0D8ABC&color=fff" 
+                                 alt="{{ post.author.username }}" class="avatar avatar-sm">
+                            <span>{{ post.author.username }}</span>
+                        </div>
+                        <div class="post-stats">
+                            <span class="stat-item">
+                                <i class="fas fa-eye"></i>
+                                {{ post.views }}
+                            </span>
+                            <span class="stat-item">
+                                <i class="fas fa-comments"></i>
+                                {{ post.comments.count }}
+                            </span>
+                            <span class="stat-item">
+                                <i class="fas fa-clock"></i>
+                                <span class="post-time" data-time="{{ post.created_at|date:'c' }}">
+                                    {{ post.created_at|date:'Y-m-d H:i' }}
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- 分页 -->
+    {% if is_paginated %}
+        <div class="pagination-container">
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1" aria-label="First">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    {% endif %}
+{% else %}
+    <!-- 空状态 -->
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="fas fa-inbox"></i>
+        </div>
+        <h4 class="mb-3">暂无帖子</h4>
+        <p class="mb-4">快来发表第一个帖子，分享你的想法吧！</p>
+        {% if user.is_authenticated %}
+            <a href="{% url 'posts:post_create' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus me-2"></i>发表新帖
+            </a>
+        {% else %}
+            <a href="{% url 'users:login' %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i>登录后发表
+            </a>
+        {% endif %}
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 分类筛选功能
+    document.addEventListener('DOMContentLoaded', function() {
+        const categoryBadges = document.querySelectorAll('.category-badge');
+        
+        categoryBadges.forEach(badge => {
+            badge.addEventListener('click', function() {
+                // 移除所有active类
+                categoryBadges.forEach(b => b.classList.remove('active'));
+                // 添加active类到当前点击的badge
+                this.classList.add('active');
+                
+                const category = this.dataset.category;
+                // 这里可以添加AJAX请求来筛选帖子
+                console.log('筛选分类:', category);
+                // 实际应用中这里应该发送AJAX请求并更新帖子列表
+            });
+        });
+        
+        // 实时更新时间显示
+        const timeElements = document.querySelectorAll('.post-time');
+        timeElements.forEach(element => {
+            const time = new Date(element.dataset.time);
+            element.textContent = window.TiebaUtils.formatDate(time);
+        });
+        
+        // 定期更新时间显示
+        setInterval(() => {
+            timeElements.forEach(element => {
+                const time = new Date(element.dataset.time);
+                element.textContent = window.TiebaUtils.formatDate(time);
+            });
+        }, 60000); // 每分钟更新一次
+    });
+</script>
+{% endblock %}
